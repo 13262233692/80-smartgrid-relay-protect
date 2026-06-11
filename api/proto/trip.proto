@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package relayprotect;
+
+option go_package = "github.com/smartgrid/relay-protect/api/proto;relayprotect";
+
+service TripService {
+  rpc SendTripCommand(TripCommand) returns (TripResponse);
+  rpc SendBatchTripCommands(BatchTripCommand) returns (BatchTripResponse);
+  rpc GetDeviceStatus(DeviceStatusRequest) returns (DeviceStatusResponse);
+  rpc StreamTripEvents(TripEventRequest) returns (stream TripEvent);
+}
+
+message TripCommand {
+  string device_id = 1;
+  string protection_id = 2;
+  TripType trip_type = 3;
+  int64 timestamp = 4;
+  string reason = 5;
+  bool test_mode = 6;
+  Priority priority = 7;
+}
+
+enum TripType {
+  TRIP_TYPE_UNSPECIFIED = 0;
+  TRIP_TYPE_TRIP = 1;
+  TRIP_TYPE_CLOSE = 2;
+  TRIP_TYPE_LOCKOUT = 3;
+  TRIP_TYPE_UNLOCK = 4;
+}
+
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_LOW = 1;
+  PRIORITY_NORMAL = 2;
+  PRIORITY_HIGH = 3;
+  PRIORITY_URGENT = 4;
+}
+
+message TripResponse {
+  bool success = 1;
+  string device_id = 2;
+  int64 processed_at = 3;
+  string error_message = 4;
+  ResponseCode code = 5;
+}
+
+enum ResponseCode {
+  RESPONSE_CODE_UNSPECIFIED = 0;
+  RESPONSE_CODE_OK = 1;
+  RESPONSE_CODE_FAILED = 2;
+  RESPONSE_CODE_LOCKED_OUT = 3;
+  RESPONSE_CODE_INVALID_DEVICE = 4;
+  RESPONSE_CODE_TIMEOUT = 5;
+}
+
+message BatchTripCommand {
+  repeated TripCommand commands = 1;
+}
+
+message BatchTripResponse {
+  repeated TripResponse responses = 1;
+  int32 success_count = 2;
+  int32 failed_count = 3;
+}
+
+message DeviceStatusRequest {
+  string device_id = 1;
+}
+
+message DeviceStatusResponse {
+  string device_id = 1;
+  DeviceState state = 2;
+  bool locked_out = 3;
+  int64 last_trip_time = 4;
+  int64 last_close_time = 5;
+  int32 trip_count_today = 6;
+}
+
+enum DeviceState {
+  DEVICE_STATE_UNSPECIFIED = 0;
+  DEVICE_STATE_OPEN = 1;
+  DEVICE_STATE_CLOSED = 2;
+  DEVICE_STATE_FAULT = 3;
+  DEVICE_STATE_UNKNOWN = 4;
+}
+
+message TripEventRequest {
+  string device_id = 1;
+  int64 since_timestamp = 2;
+}
+
+message TripEvent {
+  string event_id = 1;
+  string device_id = 2;
+  TripType event_type = 3;
+  int64 timestamp = 4;
+  string reason = 5;
+  bool success = 6;
+}
