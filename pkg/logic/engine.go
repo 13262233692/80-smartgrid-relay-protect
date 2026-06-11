@@ -329,6 +329,13 @@ func (e *ProtectionEngine) GetGraph() *LogicGraph {
 	return e.graph
 }
 
+func (e *ProtectionEngine) UpsertInputNode(id string, value bool) error {
+	if _, err := e.graph.GetOrAddInputNode(id); err != nil {
+		return err
+	}
+	return e.SetInput(id, value)
+}
+
 func (e *ProtectionEngine) GetAllInputs() map[string]bool {
 	return e.graph.GetAllInputs()
 }

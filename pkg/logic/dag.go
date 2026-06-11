@@ -360,6 +360,26 @@ func (g *LogicGraph) SetInput(id string, value bool) error {
 	return nil
 }
 
+func (g *LogicGraph) GetOrAddInputNode(id string) (*LogicNode, error) {
+	if node, exists := g.GetNode(id); exists {
+		if node.Type != NodeTypeInput {
+			return nil, fmt.Errorf("node %s exists but is not an input node", id)
+		}
+		return node, nil
+	}
+
+	node := &LogicNode{
+		ID:          id,
+		Type:        NodeTypeInput,
+		Name:        id,
+		Description: "Auto-created input",
+	}
+	if err := g.AddNode(node); err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (g *LogicGraph) Evaluate() (*EvaluationResult, error) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
